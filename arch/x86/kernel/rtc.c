@@ -135,6 +135,9 @@ EXPORT_SYMBOL(rtc_cmos_write);
 
 int update_persistent_clock(struct timespec now)
 {
+#ifdef CONFIG_X86_L4
+	return 0;
+#endif
 	return x86_platform.set_wallclock(now.tv_sec);
 }
 

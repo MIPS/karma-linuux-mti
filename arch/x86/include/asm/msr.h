@@ -9,6 +9,10 @@
 #include <asm/errno.h>
 #include <asm/cpumask.h>
 
+#ifdef CONFIG_X86_L4
+#include <asm/l4.h>
+#endif
+
 struct msr {
 	union {
 		struct {
@@ -59,15 +63,22 @@ static inline unsigned long long native_read_tscp(unsigned int *aux)
 
 static inline unsigned long long native_read_msr(unsigned int msr)
 {
+#ifdef CONFIG_X86_L4
+	return 0;
+#else
 	DECLARE_ARGS(val, low, high);
 
 	asm volatile("rdmsr" : EAX_EDX_RET(val, low, high) : "c" (msr));
 	return EAX_EDX_VAL(val, low, high);
+#endif
 }
 
 static inline unsigned long long native_read_msr_safe(unsigned int msr,
 						      int *err)
 {
+#ifdef CONFIG_X86_L4
+	return native_read_msr(msr);
+#else
 	DECLARE_ARGS(val, low, high);
 
 	asm volatile("2: rdmsr ; xor %[err],%[err]\n"
@@ -79,18 +90,31 @@ static inline unsigned long long native_read_msr_safe(unsigned int msr,
 		     : [err] "=r" (*err), EAX_EDX_RET(val, low, high)
 		     : "c" (msr), [fault] "i" (-EIO));
 	return EAX_EDX_VAL(val, low, high);
+#endif
 }
 
 static inline void native_write_msr(unsigned int msr,
 				    unsigned low, unsigned high)
 {
+#ifdef CONFIG_X86_L4
+	unsigned long _msr = msr;
+	unsigned long _low = low;
+	unsigned long _high = high;
+	karma_hypercall3(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(arch),
+				karma_arch_df_wrmsr), &_msr, &_low, &_high);
+#else
 	asm volatile("wrmsr" : : "c" (msr), "a"(low), "d" (high) : "memory");
+#endif
 }
 
 /* Can be uninlined because referenced by paravirt */
 notrace static inline int native_write_msr_safe(unsigned int msr,
 					unsigned low, unsigned high)
 {
+#ifdef CONFIG_X86_L4
+	native_write_msr(msr, low, high);
+	return 0;
+#else
 	int err;
 	asm volatile("2: wrmsr ; xor %[err],%[err]\n"
 		     "1:\n\t"
@@ -103,6 +127,7 @@ notrace static inline int native_write_msr_safe(unsigned int msr,
 		       [fault] "i" (-EIO)
 		     : "memory");
 	return err;
+#endif
 }
 
 extern unsigned long long native_read_tsc(void);

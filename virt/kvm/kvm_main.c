@@ -202,8 +202,10 @@ void kvm_flush_remote_tlbs(struct kvm *kvm)
 	long dirty_count = kvm->tlbs_dirty;
 
 	smp_mb();
+#ifndef CONFIG_X86_L4
 	if (make_all_cpus_request(kvm, KVM_REQ_TLB_FLUSH))
 		++kvm->stat.remote_tlb_flush;
+#endif
 	cmpxchg(&kvm->tlbs_dirty, dirty_count, 0);
 }
 
@@ -971,6 +973,10 @@ int kvm_get_dirty_log(struct kvm *kvm,
 		any = memslot->dirty_bitmap[i];
 
 	r = -EFAULT;
+#ifdef CONFIG_X86_L4
+	// mark screen area dirty to force refresh
+	memset(memslot->dirty_bitmap, 0xff, n);
+#endif
 	if (copy_to_user(log->dirty_bitmap, memslot->dirty_bitmap, n))
 		goto out;
 

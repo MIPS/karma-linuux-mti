@@ -17,6 +17,9 @@ CFLAGS_REMOVE_early_printk.o = -pg
 endif
 
 obj-y			:= process_$(BITS).o signal.o entry_$(BITS).o
+ifdef CONFIG_X86_L4
+obj-y			+= karma_gic.o
+endif
 obj-y			+= traps.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
 obj-y			+= time.o ioport.o ldt.o dumpstack.o nmi.o
 obj-y			+= setup.o x86_init.o i8259.o irqinit.o jump_label.o
@@ -29,7 +32,12 @@ obj-$(CONFIG_X86_64)	+= vsyscall_64.o
 obj-$(CONFIG_X86_64)	+= vsyscall_emu_64.o
 obj-y			+= bootflag.o e820.o
 obj-y			+= pci-dma.o quirks.o topology.o kdebugfs.o
-obj-y			+= alternative.o i8253.o pci-nommu.o hw_breakpoint.o
+obj-y			+= alternative.o pci-nommu.o hw_breakpoint.o
+ifdef CONFIG_X86_L4
+obj-y			+= karma_timer.o
+else
+obj-y			+= i8253.o
+endif
 obj-y			+= tsc.o io_delay.o rtc.o
 obj-y			+= pci-iommu_table.o
 obj-y			+= resource.o
@@ -102,6 +110,8 @@ obj-$(CONFIG_OF)			+= devicetree.o
 obj-$(CONFIG_UPROBES)			+= uprobes.o
 
 obj-$(CONFIG_PERF_EVENTS)		+= perf_regs.o
+
+obj-$(CONFIG_X86_L4)			+= hypercall.o
 
 ###
 # 64 bit specific files

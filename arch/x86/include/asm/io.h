@@ -107,10 +107,21 @@ build_mmio_write(writeq, "q", unsigned long, "r", :"memory")
  *	almost all conceivable cases a device driver should not be using
  *	this function
  */
+#ifdef CONFIG_X86_L4
+#include <asm/l4.h>
+#endif
 
 static inline phys_addr_t virt_to_phys(volatile void *address)
 {
+#ifdef CONFIG_X86_L4
+	unsigned long _tmp;
+	_tmp = (unsigned long)__pa(address);
+	karma_hypercall1(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(mem),
+			karma_mem_df_guest_phys_to_host_phys), &_tmp);
+	return (phys_addr_t)_tmp;
+#else
 	return __pa(address);
+#endif
 }
 
 /**
@@ -265,6 +276,60 @@ static inline void slow_down_io(void)
 
 #endif
 
+#ifdef CONFIG_X86_L4
+#include <asm/l4.h>
+#define BUILDIO(bwl, bw, type)						\
+static inline void out##bwl(unsigned type value, int port)		\
+{									\
+	unsigned long _value, _port;					\
+	_value = (unsigned long)value;					\
+	_port  = (unsigned long)port;					\
+	karma_hypercall2(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(ioport),	\
+			karma_ioport_out##bwl), &_port, &_value);	\
+}									\
+									\
+static inline unsigned type in##bwl(int port)				\
+{									\
+	unsigned type value;						\
+	unsigned long _value, _port;					\
+	_port = (unsigned long)port;					\
+	karma_hypercall2(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(ioport),	\
+			karma_ioport_in##bwl), &_port, &_value);	\
+	value = (unsigned type)_value;					\
+	return value;							\
+}									\
+									\
+static inline void out##bwl##_p(unsigned type value, int port)		\
+{									\
+	out##bwl(value, port);						\
+	slow_down_io();							\
+}									\
+									\
+static inline unsigned type in##bwl##_p(int port)			\
+{									\
+	unsigned type value = in##bwl(port);				\
+	slow_down_io();							\
+	return value;							\
+}									\
+									\
+static inline void outs##bwl(int port, const void *addr, unsigned long count) \
+{									\
+	unsigned long _port = (unsigned long)port;			\
+	unsigned long _mem;						\
+	_mem = (u32)virt_to_phys((volatile void *)addr);		\
+	karma_hypercall3(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(ioport),	\
+			karma_ioport_outs##bwl), &_port, &_mem, &count); \
+}									\
+									\
+static inline void ins##bwl(int port, void *addr, unsigned long count)	\
+{									\
+	unsigned long _port = (unsigned long)port;			\
+	unsigned long _mem;						\
+	_mem = (u32)virt_to_phys((volatile void *)addr);		\
+	karma_hypercall3(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(ioport),	\
+			karma_ioport_ins##bwl), &_port, &_mem, &count); \
+}
+#else // CONFIG_X86_L4
 #define BUILDIO(bwl, bw, type)						\
 static inline void out##bwl(unsigned type value, int port)		\
 {									\
@@ -304,6 +369,7 @@ static inline void ins##bwl(int port, void *addr, unsigned long count)	\
 	asm volatile("rep; ins" #bwl					\
 		     : "+D"(addr), "+c"(count) : "d"(port));		\
 }
+#endif // CONFIG_X86_L4
 
 BUILDIO(b, b, char)
 BUILDIO(w, w, short)

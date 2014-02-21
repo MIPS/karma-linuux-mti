@@ -468,6 +468,10 @@ static void __init mm_init(void)
 	vmalloc_init();
 }
 
+#ifdef CONFIG_X86_L4
+extern void karma_hypercall_init(void);
+#endif
+
 asmlinkage void __init start_kernel(void)
 {
 	char * command_line;
@@ -497,6 +501,9 @@ asmlinkage void __init start_kernel(void)
  */
 	boot_cpu_init();
 	page_address_init();
+#ifdef CONFIG_X86_L4
+	karma_hypercall_init();
+#endif
 	pr_notice("%s", linux_banner);
 	setup_arch(&command_line);
 	mm_init_owner(&init_mm, &init_task);

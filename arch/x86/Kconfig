@@ -1,3 +1,52 @@
+# x86 configuration
+#mainmenu "Linux Kernel Configuration for x86"
+
+config X86_L4
+	bool "Support for Karma Virtual Machine Environment"
+	help
+	  Say yes if you intend to run the kernel in a virtual machine
+	  on top of a L4 microkernel
+
+
+config KARMA_PKG_PATH
+	string "Absolute path to karma source directory."
+	help
+	  This option must be set when building linux for the karma vmm.
+
+
+config X86_L4_FB
+	select FB
+	select VT
+	select FRAMEBUFFER_CONSOLE
+	select FB_CFB_FILLRECT
+	select FB_CFB_COPYAREA
+	select FB_CFB_IMAGEBLIT
+	select FB_BOOT_VESA_SUPPORT
+	bool "Support for L4 Framebuffer"
+	depends on X86_L4
+	default y
+	help
+	  Say yes if you want framebuffer support, using either l4con or dope.
+
+config X86_L4_NET
+	bool "Support for Ankh-based network access (broken)"
+	depends on X86_L4
+	default n
+	help
+	  Say yes if you want to use networking in your VM.
+
+config X86_L4_PCI
+	bool "Support for PCI access using L4io (broken)"
+	default n
+	depends on X86_L4
+
+config X86_L4_BLKDEV
+	bool "Support for paravirtualized block devices"
+	default y
+	depends on (X86_L4 && BLK_DEV)
+	help
+	  Say yes if you want to access paravirtualized block devices.
+
 # Select 32 or 64 bit
 config 64BIT
 	bool "64-bit kernel" if ARCH = "x86"
@@ -9,7 +58,7 @@ config 64BIT
 config X86_32
 	def_bool y
 	depends on !64BIT
-	select CLKSRC_I8253
+	select CLKSRC_I8253 if !X86_L4
 	select HAVE_UID16
 
 config X86_64
@@ -93,7 +142,7 @@ config X86
 	select USE_GENERIC_SMP_HELPERS if SMP
 	select HAVE_BPF_JIT if X86_64
 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
-	select CLKEVT_I8253
+	select CLKEVT_I8253 if !X86_L4
 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
 	select GENERIC_IOMAP
 	select DCACHE_WORD_ACCESS

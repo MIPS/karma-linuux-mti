@@ -13,6 +13,9 @@
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <linux/mmiotrace.h>
+#ifdef CONFIG_X86_L4
+#include <linux/compiler.h>
+#endif
 
 #include <asm/cacheflush.h>
 #include <asm/e820.h>
@@ -50,6 +53,9 @@ int ioremap_change_attr(unsigned long vaddr, unsigned long size,
 	return err;
 }
 
+#ifdef CONFIG_X86_L4
+#include <asm/l4.h>
+#endif
 /*
  * Remap an arbitrary physical address space into the kernel virtual
  * address space. Needed when the kernel wants to access high addresses
@@ -71,6 +77,18 @@ static void __iomem *__ioremap_caller(resource_size_t phys_addr,
 	pgprot_t prot;
 	int retval;
 	void __iomem *ret_addr;
+#ifdef CONFIG_X86_L4
+	unsigned long __temp_arg;
+
+	struct l4_iomap{unsigned int addr, size;};
+	struct l4_iomap a;
+	a.addr = phys_addr;
+	a.size = size;
+	barrier();
+	__temp_arg = (unsigned long)__pa(&a);
+	karma_hypercall1(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(pci),
+				((L4_PCI_IOMAP) | 1)), &__temp_arg);
+#endif
 
 	/* Don't allow wraparound or zero size */
 	last_addr = phys_addr + size - 1;
@@ -208,7 +226,11 @@ void __iomem *ioremap_nocache(resource_size_t phys_addr, unsigned long size)
 	 * Till we fix all X drivers to use ioremap_wc(), we will use
 	 * UC MINUS.
 	 */
+#ifndef CONFIG_X86_L4
 	unsigned long val = _PAGE_CACHE_UC_MINUS;
+#else
+	unsigned long val = _PAGE_CACHE_UC;
+#endif
 
 	return __ioremap_caller(phys_addr, size, val,
 				__builtin_return_address(0));

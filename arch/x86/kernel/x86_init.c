@@ -90,13 +90,41 @@ struct x86_cpuinit_ops x86_cpuinit __cpuinitdata = {
 	.setup_percpu_clockev		= setup_secondary_APIC_clock,
 };
 
+#ifdef CONFIG_X86_L4
+unsigned long l4_get_wallclock_time(void)
+{
+	unsigned long temp_arg = 0;
+	karma_hypercall1(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(karma), karma_df_get_time), &temp_arg);
+	return temp_arg;
+}
+
+int l4_set_wallclock_time(unsigned long nowtime)
+{
+	printk("Set wallclock time: not supported\n");
+	return 0;
+}
+unsigned long l4_calibrate_tsc(void)
+{
+	unsigned long temp_arg = 0;
+	karma_hypercall1(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(karma), karma_df_get_khz_cpu), &temp_arg);
+	return temp_arg;
+}
+#endif
+
 static void default_nmi_init(void) { };
 static int default_i8042_detect(void) { return 1; };
 
 struct x86_platform_ops x86_platform = {
+#ifdef CONFIG_X86_L4
+	.calibrate_tsc			= l4_calibrate_tsc,
+//	.wallclock_init			= wallclock_init_noop,
+	.get_wallclock			= l4_get_wallclock_time,
+	.set_wallclock			= l4_set_wallclock_time,
+#else
 	.calibrate_tsc			= native_calibrate_tsc,
 	.get_wallclock			= mach_get_cmos_time,
 	.set_wallclock			= mach_set_rtc_mmss,
+#endif
 	.iommu_shutdown			= iommu_shutdown_noop,
 	.is_untracked_pat_range		= is_ISA_range,
 	.nmi_init			= default_nmi_init,

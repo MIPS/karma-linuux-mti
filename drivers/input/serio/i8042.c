@@ -1464,6 +1464,9 @@ static int __init i8042_init(void)
 	struct platform_device *pdev;
 	int err;
 
+#ifdef CONFIG_X86_L4
+	return 0;
+#endif
 	dbg_init();
 
 	err = i8042_platform_init();

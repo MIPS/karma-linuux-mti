@@ -22,6 +22,7 @@
 
 static void early_serial_init(int port, int baud)
 {
+#ifndef CONFIG_X86_L4
 	unsigned char c;
 	unsigned divisor;
 
@@ -36,7 +37,7 @@ static void early_serial_init(int port, int baud)
 	outb(divisor & 0xff, port + DLL);
 	outb((divisor >> 8) & 0xff, port + DLH);
 	outb(c & ~DLAB, port + LCR);
-
+#endif
 	early_serial_base = port;
 }
 
@@ -98,16 +99,19 @@ static void parse_earlyprintk(void)
 #define BASE_BAUD (1843200/16)
 static unsigned int probe_baud(int port)
 {
-	unsigned char lcr, dll, dlh;
 	unsigned int quot;
-
+	unsigned char lcr, dll, dlh;
+#ifndef CONFIG_X86_L4
 	lcr = inb(port + LCR);
 	outb(lcr | DLAB, port + LCR);
 	dll = inb(port + DLL);
 	dlh = inb(port + DLH);
 	outb(lcr, port + LCR);
 	quot = (dlh << 8) | dll;
-
+#else
+	(void)lcr; (void)dll; (void)dlh;
+	quot = 1;
+#endif
 	return BASE_BAUD / quot;
 }
 

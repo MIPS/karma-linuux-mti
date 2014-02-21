@@ -6806,6 +6806,9 @@ void kvm_arch_vcpu_uninit(struct kvm_vcpu *vcpu)
 		static_key_slow_dec(&kvm_no_apic_vcpu);
 }
 
+#ifdef CONFIG_X86_L4
+#include <asm/l4.h>
+#endif
 int kvm_arch_init_vm(struct kvm *kvm, unsigned long type)
 {
 	if (type)
@@ -6826,6 +6829,10 @@ int kvm_arch_init_vm(struct kvm *kvm, unsigned long type)
 
 	pvclock_update_vm_gtod_copy(kvm);
 
+#ifdef CONFIG_X86_L4
+	if(l4_read(L4_KVM_CREATE))
+		return ERR_PTR(-ENOMEM);
+#endif
 	return 0;
 }
 
@@ -6895,6 +6902,9 @@ void kvm_arch_destroy_vm(struct kvm *kvm)
 	if (kvm->arch.ept_identity_pagetable)
 		put_page(kvm->arch.ept_identity_pagetable);
 	kfree(rcu_dereference_check(kvm->arch.apic_map, 1));
+#ifdef CONFIG_X86_L4
+	l4_read(L4_KVM_DESTROY);
+#endif
 }
 
 void kvm_arch_free_memslot(struct kvm_memory_slot *free,

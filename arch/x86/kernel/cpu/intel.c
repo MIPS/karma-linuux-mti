@@ -663,7 +663,11 @@ static void __cpuinit intel_detect_tlb(struct cpuinfo_x86 *c)
 
 static const struct cpu_dev __cpuinitconst intel_cpu_dev = {
 	.c_vendor	= "Intel",
+#ifndef CONFIG_X86_L4
 	.c_ident	= { "GenuineIntel" },
+#else
+	.c_ident	= { "FiascoWicked", "GenuineIntel" },
+#endif
 #ifdef CONFIG_X86_32
 	.c_models = {
 		{ .vendor = X86_VENDOR_INTEL, .family = 4, .model_names =

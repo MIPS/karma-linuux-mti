@@ -280,7 +280,11 @@ enum {
 	 *
 	 * Old drivers/ide uses the 2mS rule and then waits for ready.
 	 */
+#ifndef CONFIG_X86_L4
 	ATA_WAIT_AFTER_RESET	=  150,
+#else
+	ATA_WAIT_AFTER_RESET	=  2000,
+#endif
 
 	/* If PMP is supported, we have to do follow-up SRST.  As some
 	 * PMPs don't send D2H Reg FIS after hardreset, LLDs are
@@ -1778,7 +1782,11 @@ static inline u8 ata_sff_busy_wait(struct ata_port *ap, unsigned int bits,
 	u8 status;
 
 	do {
+#ifndef CONFIG_X86_L4
 		udelay(10);
+#else
+		udelay(100);
+#endif
 		status = ap->ops->sff_check_status(ap);
 		max--;
 	} while (status != 0xff && (status & bits) && (max > 0));

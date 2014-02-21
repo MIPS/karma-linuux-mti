@@ -186,7 +186,7 @@ static const struct svm_direct_access_msrs {
 };
 
 /* enable NPT for AMD64 and X86 with PAE */
-#if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
+#if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE) || defined(CONFIG_X86_L4)
 static bool npt_enabled = true;
 #else
 static bool npt_enabled;
@@ -608,6 +608,7 @@ static int has_svm(void)
 
 static void svm_hardware_disable(void *garbage)
 {
+#ifndef CONFIG_X86_L4
 	/* Make sure we clean up behind us */
 	if (static_cpu_has(X86_FEATURE_TSCRATEMSR))
 		wrmsrl(MSR_AMD64_TSC_RATIO, TSC_RATIO_DEFAULT);
@@ -615,6 +616,7 @@ static void svm_hardware_disable(void *garbage)
 	cpu_svm_disable();
 
 	amd_pmu_disable_virt();
+#endif
 }
 
 static int svm_hardware_enable(void *garbage)
@@ -911,6 +913,15 @@ static __init int svm_hardware_setup(void)
 		kvm_enable_tdp();
 	} else
 		kvm_disable_tdp();
+
+#ifdef CONFIG_X86_L4
+	if(!npt_enabled)
+	{
+		printk("kvm: error, running on Karma requires nested paging.\n");
+		r = -EOPNOTSUPP;
+		goto err;
+	}
+#endif
 
 	return 0;
 
@@ -3791,6 +3802,10 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 {
 	struct vcpu_svm *svm = to_svm(vcpu);
 
+#ifdef CONFIG_X86_L4
+	struct karma_vmrun_data kvd;
+#endif
+
 	svm->vmcb->save.rax = vcpu->arch.regs[VCPU_REGS_RAX];
 	svm->vmcb->save.rsp = vcpu->arch.regs[VCPU_REGS_RSP];
 	svm->vmcb->save.rip = vcpu->arch.regs[VCPU_REGS_RIP];
@@ -3812,6 +3827,7 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 
 	local_irq_enable();
 
+#ifndef CONFIG_X86_L4
 	asm volatile (
 		"push %%" _ASM_BP "; \n\t"
 		"mov %c[rbx](%[svm]), %%" _ASM_BX " \n\t"
@@ -3884,6 +3900,15 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 		, "ebx", "ecx", "edx", "esi", "edi"
 #endif
 		);
+#endif // ifndef CONFIG_X86_L4
+
+#ifdef CONFIG_X86_L4
+	karma_vcpu_to_l4gpregs(vcpu, &(kvd.gpregs));
+	
+	kvd.vmcb = (u32)svm->vmcb_pa;
+	l4_write(L4_KVM_VMRUN, (u32)virt_to_phys(&kvd));
+	karma_l4gpregs_to_vcpu(&(kvd.gpregs), vcpu);
+#endif
 
 #ifdef CONFIG_X86_64
 	wrmsrl(MSR_GS_BASE, svm->host.gs_base);
@@ -3966,12 +3991,14 @@ static void set_tdp_cr3(struct kvm_vcpu *vcpu, unsigned long root)
 
 static int is_disabled(void)
 {
+#ifndef CONFIG_X86_L4
 	u64 vm_cr;
 
 	rdmsrl(MSR_VM_CR, vm_cr);
 	if (vm_cr & (1 << SVM_VM_CR_SVM_DISABLE))
 		return 1;
 
+#endif
 	return 0;
 }
 

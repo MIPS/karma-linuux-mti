@@ -822,7 +822,11 @@ static void __cpuinit cpu_detect_tlb_amd(struct cpuinfo_x86 *c)
 
 static const struct cpu_dev __cpuinitconst amd_cpu_dev = {
 	.c_vendor	= "AMD",
+#ifndef CONFIG_X86_L4
 	.c_ident	= { "AuthenticAMD" },
+#else
+	.c_ident	= { "WickedFiasco", "AuthenticAMD"},
+#endif
 #ifdef CONFIG_X86_32
 	.c_models = {
 		{ .vendor = X86_VENDOR_AMD, .family = 4, .model_names =

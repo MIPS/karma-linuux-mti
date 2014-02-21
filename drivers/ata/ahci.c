@@ -1181,6 +1181,9 @@ static int ahci_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	struct ata_host *host;
 	int n_ports, n_msis, i, rc;
 	int ahci_pci_bar = AHCI_PCI_BAR_STANDARD;
+#ifdef CONFIG_X86_L4
+	unsigned long __temp_arg;
+#endif
 
 	VPRINTK("ENTER\n");
 
@@ -1370,6 +1373,12 @@ static int ahci_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	if (hpriv->flags & AHCI_HFLAG_MULTI_MSI)
 		return ahci_host_activate(host, pdev->irq, n_msis);
+
+#ifdef CONFIG_X86_L4
+	__temp_arg = __pa(&pdev->irq);
+	karma_hypercall1(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(ahci),
+				L4_AHCI_CONFIGURE_IRQ), &__temp_arg);
+#endif
 
 	return ata_host_activate(host, pdev->irq, ahci_interrupt, IRQF_SHARED,
 				 &ahci_sht);

@@ -162,10 +162,12 @@ static void serial_putchar(int ch)
 {
 	unsigned timeout = 0xffff;
 
+#ifndef CONFIG_X86_L4
 	while ((inb(early_serial_base + LSR) & XMTRDY) == 0 && --timeout)
 		cpu_relax();
 
 	outb(ch, early_serial_base + TXR);
+#endif
 }
 
 void __putstr(const char *s)
@@ -212,10 +214,12 @@ void __putstr(const char *s)
 	real_mode->screen_info.orig_y = y;
 
 	pos = (x + cols * y) * 2;	/* Update cursor position */
+#ifndef CONFIG_X86_L4
 	outb(14, vidport);
 	outb(0xff & (pos >> 9), vidport+1);
 	outb(15, vidport);
 	outb(0xff & (pos >> 1), vidport+1);
+#endif
 }
 
 void *memset(void *s, int c, size_t n)

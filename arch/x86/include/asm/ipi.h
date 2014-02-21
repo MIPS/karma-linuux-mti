@@ -69,10 +69,12 @@ __default_send_IPI_shortcut(unsigned int shortcut, int vector, unsigned int dest
 	 */
 	unsigned int cfg;
 
+#ifndef CONFIG_X86_L4
 	/*
 	 * Wait for idle.
 	 */
 	__xapic_wait_icr_idle();
+#endif
 
 	/*
 	 * No need to touch the target chip field

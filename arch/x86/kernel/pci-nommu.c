@@ -12,6 +12,10 @@
 #include <asm/iommu.h>
 #include <asm/dma.h>
 
+#ifdef CONFIG_X86_L4
+#include <asm/l4.h>
+#endif
+
 static int
 check_addr(char *name, struct device *hwdev, dma_addr_t bus, size_t size)
 {
@@ -54,20 +58,43 @@ static dma_addr_t nommu_map_page(struct device *dev, struct page *page,
  * Device ownership issues as mentioned above for pci_map_single are
  * the same here.
  */
+#ifdef CONFIG_X86_L4
+u32 dma_base = 0;
+u32 dma_base_flag = 0;
+#endif
 static int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
 			int nents, enum dma_data_direction dir,
 			struct dma_attrs *attrs)
 {
 	struct scatterlist *s;
 	int i;
+#ifdef CONFIG_X86_L4
+	u32 test = 0;
+	unsigned long __temp_arg;
+#endif
 
 	WARN_ON(nents == 0 || sg[0].length == 0);
 
 	for_each_sg(sg, s, nents, i) {
 		BUG_ON(!sg_page(s));
 		s->dma_address = sg_phys(s);
+#ifdef CONFIG_X86_L4
+		barrier();
+#endif
 		if (!check_addr("map_sg", hwdev, s->dma_address, s->length))
 			return 0;
+#ifdef CONFIG_X86_L4
+		if(unlikely(!dma_base_flag))
+		{
+			__temp_arg = (unsigned long)virt_to_phys(&dma_base);
+			karma_hypercall1(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(mem),
+						karma_mem_df_dma_base), &__temp_arg);
+			dma_base_flag = 1;
+		}
+		test = s->dma_address;
+		s->dma_address = dma_base + s->dma_address;
+		barrier();
+#endif
 		s->dma_length = s->length;
 	}
 	flush_write_buffers();

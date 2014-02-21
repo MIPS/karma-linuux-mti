@@ -11,7 +11,11 @@
 
 #include <linux/clockchips.h>
 #include <linux/interrupt.h>
+#ifdef CONFIG_X86_L4
+#include <linux/karma_timer.h>
+#else
 #include <linux/i8253.h>
+#endif
 #include <linux/time.h>
 #include <linux/export.h>
 
@@ -75,7 +79,11 @@ void __init setup_default_timer_irq(void)
 void __init hpet_time_init(void)
 {
 	if (!hpet_enable())
+#ifdef CONFIG_X86_L4
+		setup_karma_timer();
+#else
 		setup_pit_timer();
+#endif
 	setup_default_timer_irq();
 }
 

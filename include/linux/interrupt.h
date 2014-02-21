@@ -126,11 +126,30 @@ request_threaded_irq(unsigned int irq, irq_handler_t handler,
 		     irq_handler_t thread_fn,
 		     unsigned long flags, const char *name, void *dev);
 
+#ifdef CONFIG_X86_L4
+#include <asm/l4.h>
+#endif
+
 static inline int __must_check
 request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags,
 	    const char *name, void *dev)
 {
+#ifdef CONFIG_X86_L4
+	unsigned long _irq, _val;
+	int ret;
+
+	ret = request_threaded_irq(irq, handler, NULL, flags, name, dev);
+	if(ret < 0)
+		return ret;
+	_irq = (unsigned long)irq;
+
+	karma_hypercall2(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(karma), karma_df_request_irq), &_irq, &_val);
+	if(_val < 0)
+		return -EPERM;
+	return ret;
+#else
 	return request_threaded_irq(irq, handler, NULL, flags, name, dev);
+#endif
 }
 
 extern int __must_check

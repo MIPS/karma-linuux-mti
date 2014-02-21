@@ -1771,6 +1771,10 @@ __apicdebuginit(void) print_PIC(void)
 	unsigned int v;
 	unsigned long flags;
 
+#ifdef CONFIG_X86_L4
+	return;
+#endif
+
 	if (!legacy_pic->nr_legacy_irqs)
 		return;
 

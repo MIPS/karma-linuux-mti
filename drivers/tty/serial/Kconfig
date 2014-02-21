@@ -7,6 +7,11 @@ if TTY
 menu "Serial drivers"
 	depends on HAS_IOMEM && GENERIC_HARDIRQS
 
+config SERIAL_L4
+	bool "L4 serial console"
+	select SERIAL_CORE
+	select SERIAL_CORE_CONSOLE
+
 source "drivers/tty/serial/8250/Kconfig"
 
 comment "Non-8250 serial port support"

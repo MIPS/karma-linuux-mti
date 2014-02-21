@@ -144,8 +144,10 @@ static void __cpuinit smp_callin(void)
 	 * Since CPU0 is not wakened up by INIT, it doesn't wait for the IPI.
 	 */
 	cpuid = smp_processor_id();
+#ifndef CONFIG_X86_L4
 	if (apic->wait_for_init_deassert && cpuid != 0)
 		apic->wait_for_init_deassert(&init_deasserted);
+#endif
 
 	/*
 	 * (This works even if the APIC is not enabled.)
@@ -539,6 +541,15 @@ wakeup_secondary_cpu_via_init(int phys_apicid, unsigned long start_eip)
 	unsigned long send_status, accept_status = 0;
 	int maxlvt, num_starts, j;
 
+#ifdef CONFIG_X86_L4
+	unsigned long _start_eip = (unsigned long)startup_32_smp;
+	unsigned long _start_sp = (unsigned long)stack_start;
+	unsigned long _apicid = phys_apicid;
+	karma_hypercall3(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(vm), 0),
+			&_apicid, &_start_eip, &_start_sp);
+	return 0; //success
+#endif
+
 	maxlvt = lapic_get_maxlvt();
 
 	/*
@@ -793,9 +804,11 @@ static int __cpuinit do_boot_cpu(int apicid, int cpu, struct task_struct *idle)
 	 * Otherwise,
 	 * - Use an INIT boot APIC message for APs or NMI for BSP.
 	 */
+#ifndef CONFIG_X86_L4
 	if (apic->wakeup_secondary_cpu)
 		boot_error = apic->wakeup_secondary_cpu(apicid, start_ip);
 	else
+#endif
 		boot_error = wakeup_cpu_via_init_nmi(cpu, start_ip, apicid,
 						     &cpu0_nmi_registered);
 

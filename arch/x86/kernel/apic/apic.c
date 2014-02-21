@@ -706,6 +706,15 @@ static int __init calibrate_APIC_clock(void)
 		lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
 		return 0;
 	}
+#ifdef CONFIG_X86_L4
+	karma_hypercall1(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(karma),
+				karma_df_get_khz_bus), (unsigned long*)&delta);
+	delta *= 100;
+	delta /= APIC_DIVISOR;
+	karma_hypercall1(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(karma),
+				karma_df_get_khz_cpu), (unsigned long*)&deltatsc);
+	deltatsc *= 100;
+#else
 
 	apic_printk(APIC_VERBOSE, "Using local APIC timer interrupts.\n"
 		    "calibrating APIC timer ...\n");
@@ -739,6 +748,7 @@ static int __init calibrate_APIC_clock(void)
 
 	deltatsc = (long)(lapic_cal_tsc2 - lapic_cal_tsc1);
 
+#endif
 	/* we trust the PM based calibration if possible */
 	pm_referenced = !calibrate_by_pmtimer(lapic_cal_pm2 - lapic_cal_pm1,
 					&delta, &deltatsc);
@@ -758,7 +768,10 @@ static int __init calibrate_APIC_clock(void)
 	apic_printk(APIC_VERBOSE, "..... calibration result: %u\n",
 		    lapic_timer_frequency);
 
-	if (cpu_has_tsc) {
+#ifndef CONFIG_X86_L4
+	if (cpu_has_tsc)
+#endif
+	{
 		apic_printk(APIC_VERBOSE, "..... CPU clock speed is "
 			    "%ld.%04ld MHz.\n",
 			    (deltatsc / LAPIC_CAL_LOOPS) / (1000000 / HZ),
@@ -805,7 +818,11 @@ static int __init calibrate_APIC_clock(void)
 		lapic_timer_setup(CLOCK_EVT_MODE_SHUTDOWN, levt);
 
 		/* Jiffies delta */
+#ifndef CONFIG_X86_L4
 		deltaj = lapic_cal_j2 - lapic_cal_j1;
+#else
+		deltaj = LAPIC_CAL_LOOPS;
+#endif
 		apic_printk(APIC_VERBOSE, "... jiffies delta = %lu\n", deltaj);
 
 		/* Check, if the jiffies result is consistent */

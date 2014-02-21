@@ -67,6 +67,10 @@ int vector_used_by_percpu_irq(unsigned int vector)
 	return 0;
 }
 
+#ifdef CONFIG_X86_L4
+extern int __init karma_gic_init(unsigned int gic_nr, unsigned int irq_start);
+#endif
+
 void __init init_ISA_irqs(void)
 {
 	struct irq_chip *chip = legacy_pic->chip;
@@ -76,10 +80,16 @@ void __init init_ISA_irqs(void)
 #if defined(CONFIG_X86_64) || defined(CONFIG_X86_LOCAL_APIC)
 	init_bsp_APIC();
 #endif
+#ifdef CONFIG_X86_L4
+	(void)i;
+	(void)name;
+	karma_gic_init(0, 0);
+#else
 	legacy_pic->init(0);
 
 	for (i = 0; i < legacy_pic->nr_legacy_irqs; i++)
 		irq_set_chip_and_handler_name(i, chip, handle_level_irq, name);
+#endif
 }
 
 void __init init_IRQ(void)

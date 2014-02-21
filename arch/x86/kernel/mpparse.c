@@ -803,7 +803,9 @@ static int __init update_mptable_setup(char *str)
 {
 	enable_update_mptable = 1;
 #ifdef CONFIG_PCI
+#ifndef CONFIG_X86_L4
 	pci_routeirq = 1;
+#endif
 #endif
 	return 0;
 }
@@ -818,7 +820,9 @@ static int __init parse_alloc_mptable_opt(char *p)
 {
 	enable_update_mptable = 1;
 #ifdef CONFIG_PCI
+#ifndef CONFIG_X86_L4
 	pci_routeirq = 1;
+#endif
 #endif
 	alloc_mptable = 1;
 	if (!p)

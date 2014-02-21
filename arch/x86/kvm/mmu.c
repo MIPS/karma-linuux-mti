@@ -928,6 +928,11 @@ static void pte_list_remove(u64 *spte, unsigned long *pte_list)
 			BUG();
 		}
 		*pte_list = 0;
+#ifdef CONFIG_X86_L4
+		u32 addr = sp->gfns[spte - sp->spt] << 12;
+//		printk("KVM: unmap %x\n", addr);
+		l4_write(L4_KVM_UNMAP, addr);
+#endif
 	} else {
 		rmap_printk("pte_list_remove:  %p many->many\n", spte);
 		desc = (struct pte_list_desc *)(*pte_list & ~1ul);
@@ -3268,6 +3273,17 @@ static bool try_async_pf(struct kvm_vcpu *vcpu, bool prefault, gfn_t gfn,
 
 	return false;
 }
+
+#ifdef CONFIG_X86_L4
+#include <asm/l4.h>
+
+struct karma_kvm_map
+{
+	unsigned long target_addr;
+	unsigned long fault_addr;
+	unsigned largepage;
+};
+#endif
 
 static int tdp_page_fault(struct kvm_vcpu *vcpu, gva_t gpa, u32 error_code,
 			  bool prefault)

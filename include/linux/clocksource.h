@@ -331,7 +331,11 @@ extern cycle_t clocksource_mmio_readw_down(struct clocksource *);
 extern int clocksource_mmio_init(void __iomem *, const char *,
 	unsigned long, int, unsigned, cycle_t (*)(struct clocksource *));
 
+#ifndef CONFIG_X86_L4
 extern int clocksource_i8253_init(void);
+#else
+extern int clocksource_karma_init(void);
+#endif
 
 struct device_node;
 typedef void(*clocksource_of_init_fn)(struct device_node *);

@@ -6,12 +6,9 @@
  *  Machine specific IO port address definition for generic.
  *  Written by Osamu Tomita <tomita@cinet.co.jp>
  */
-#ifndef __LINUX_I8253_H
-#define __LINUX_I8253_H
+#ifndef __LINUX_KARMA_TIMER_H
+#define __LINUX_KARMA_TIMER_H
 
-#ifdef CONFIG_X86_L4
-#include <linux/karma_timer.h>
-#else
 #include <linux/param.h>
 #include <linux/spinlock.h>
 #include <linux/timex.h>
@@ -23,11 +20,10 @@
 
 #define PIT_LATCH	((PIT_TICK_RATE + HZ/2) / HZ)
 
-extern raw_spinlock_t i8253_lock;
-extern struct clock_event_device i8253_clockevent;
-extern void clockevent_i8253_init(bool oneshot);
+extern raw_spinlock_t karma_timer_lock;
+extern struct clock_event_device karma_timer_clockevent;
+extern void clockevent_karma_init(bool oneshot);
 
-extern void setup_pit_timer(void);
-#endif /* CONFIG_X86_L4 */
+extern void setup_karma_timer(void);
 
-#endif /* __LINUX_I8253_H */
+#endif /* __LINUX_KARMA_TIMER_H */

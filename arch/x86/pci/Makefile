@@ -1,5 +1,12 @@
-obj-y				:= i386.o init.o
+obj-y				:= i386.o
 
+ifeq ($(CONFIG_X86_L4_PCI),y)
+
+obj-y				+= l4vpci.o
+
+else
+
+obj-y				+= init.o
 obj-$(CONFIG_PCI_BIOS)		+= pcbios.o
 obj-$(CONFIG_PCI_MMCONFIG)	+= mmconfig_$(BITS).o direct.o mmconfig-shared.o
 obj-$(CONFIG_PCI_DIRECT)	+= direct.o
@@ -28,4 +35,6 @@ obj-$(CONFIG_PCI_CNB20LE_QUIRK)	+= broadcom_bus.o
 
 ifeq ($(CONFIG_PCI_DEBUG),y)
 EXTRA_CFLAGS += -DDEBUG
+endif
+
 endif
