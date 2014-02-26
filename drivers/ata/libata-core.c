@@ -1559,7 +1559,7 @@ unsigned ata_exec_internal_sg(struct ata_device *dev,
 	unsigned int err_mask;
 	int rc;
 
-#ifdef CONFIG_X86_L4
+#ifdef CONFIG_KARMA_L4
 	timeout += 1000;
 #endif
 
@@ -5086,12 +5086,12 @@ void ata_qc_issue(struct ata_queued_cmd *qc)
 	return;
 
 sys_err:
-#ifdef CONFIG_X86_L4
+#ifdef CONFIG_KARMA_L4
 	VPRINTK("ata_sg_setup returned non-zero\n");
 #endif
 	qc->err_mask |= AC_ERR_SYSTEM;
 err:
-#ifdef CONFIG_X86_L4
+#ifdef CONFIG_KARMA_L4
 	VPRINTK("ap->ops->qc_issue(qc) returned an error\n");
 #endif
 	ata_qc_complete(qc);

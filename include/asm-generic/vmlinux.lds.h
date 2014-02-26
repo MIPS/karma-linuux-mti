@@ -392,6 +392,7 @@
 		VMLINUX_SYMBOL(__start___modver) = .;			\
 		*(__modver)						\
 		VMLINUX_SYMBOL(__stop___modver) = .;			\
+		LONG(1);						\
 		. = ALIGN((align));					\
 		VMLINUX_SYMBOL(__end_rodata) = .;			\
 	}								\

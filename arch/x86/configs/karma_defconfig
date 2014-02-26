@@ -2,6 +2,7 @@
 # Automatically generated file; DO NOT EDIT.
 # Linux/i386 3.6.0 Kernel Configuration
 #
+CONFIG_KARMA_L4=y
 CONFIG_X86_L4=y
 CONFIG_KARMA_PKG_PATH="/path/to/l4/pkg/karma"
 CONFIG_X86_L4_FB=y

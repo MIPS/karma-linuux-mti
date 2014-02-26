@@ -18,9 +18,11 @@ static void karma_timer_write(unsigned long addr, unsigned long val){
 	KARMA_WRITE_IMPL(timer, addr, val);
 }
 
+#if 0 // XXX not used
 static unsigned long karma_timer_read(unsigned long addr){
 	KARMA_READ_IMPL(timer, addr);
 }
+#endif
 
 //XXX: don't know if those are actually needed
 //     leaving them in as the karma timer is only needed during bootup
@@ -28,17 +30,21 @@ static unsigned long karma_timer_read(unsigned long addr){
 DEFINE_RAW_SPINLOCK(karma_timer_lock);
 EXPORT_SYMBOL(karma_timer_lock);
 
+#if 0 // XXX not used
 /*
  */
 static cycle_t karma_read(struct clocksource *cs)
 {
 	/* NOP */
 }
+#endif
 
 static struct clocksource karma_timer_cs = {
 	.name		= "karma_timer",
 	.rating		= 110,
+#if 0 // XXX not used
 	.read		= karma_read,
+#endif
 	.mask		= CLOCKSOURCE_MASK(32),
 };
 

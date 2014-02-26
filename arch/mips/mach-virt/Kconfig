@@ -1,0 +1,8 @@
+config VIRT_HOST_FREQ
+	int "Virtual Host Processor Frequency (MHz)"
+	depends on MACH_VIRT
+	default 200
+	help
+	  Select this option when building a guest virtual machine to set the
+	  guest CPU frequency and skip RTC emulation when determining the
+	  frequency.

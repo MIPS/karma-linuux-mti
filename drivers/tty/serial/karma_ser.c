@@ -83,7 +83,7 @@ static void
 l4ser_rx_chars(struct uart_port *port)
 {
 	struct l4ser_uart_port *l4port = (struct l4ser_uart_port *)port;
-	struct tty_struct *tty = port->state->port.tty;
+	struct tty_port *tty_port = &port->state->port;
 	unsigned int flg;
 	int ch;
 
@@ -111,9 +111,9 @@ l4ser_rx_chars(struct uart_port *port)
 		if (uart_handle_sysrq_char(port, ch))
 			continue;
 
-		tty_insert_flip_char(tty, ch, flg);
+		tty_insert_flip_char(tty_port, ch, flg);
 	}
-	tty_flip_buffer_push(tty);
+	tty_flip_buffer_push(tty_port);
 	return;
 }
 
@@ -123,6 +123,9 @@ l4ser_rx_chars(struct uart_port *port)
 static void
 l4ser_console_write(struct console *co, const char *s, unsigned int count)
 {
+	if (count > sizeof(_shared_mem))
+		count = sizeof(_shared_mem);
+
 	memcpy(_shared_mem, s, count);
 	karma_ser_write(karma_ser_df_writeln, count);
 }
@@ -186,7 +189,7 @@ static int l4ser_startup(struct uart_port *port)
 
 	if (l4port->flags & L4SER_NOECHO) {
 		struct ktermios new_termios;
-		memcpy(&new_termios, l4port->port.state->port.tty->termios, sizeof(new_termios));
+		new_termios = l4port->port.state->port.tty->termios;
 		new_termios.c_lflag &= ~ECHO;
 		tty_set_termios(l4port->port.state->port.tty, &new_termios);
 	}

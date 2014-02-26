@@ -126,7 +126,7 @@ request_threaded_irq(unsigned int irq, irq_handler_t handler,
 		     irq_handler_t thread_fn,
 		     unsigned long flags, const char *name, void *dev);
 
-#ifdef CONFIG_X86_L4
+#ifdef CONFIG_KARMA_L4
 #include <asm/l4.h>
 #endif
 
@@ -134,7 +134,7 @@ static inline int __must_check
 request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags,
 	    const char *name, void *dev)
 {
-#ifdef CONFIG_X86_L4
+#ifdef CONFIG_KARMA_L4
 	unsigned long _irq, _val;
 	int ret;
 

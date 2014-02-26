@@ -280,7 +280,7 @@ enum {
 	 *
 	 * Old drivers/ide uses the 2mS rule and then waits for ready.
 	 */
-#ifndef CONFIG_X86_L4
+#ifndef CONFIG_KARMA_L4
 	ATA_WAIT_AFTER_RESET	=  150,
 #else
 	ATA_WAIT_AFTER_RESET	=  2000,

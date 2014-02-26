@@ -1,3 +1,63 @@
+menuconfig KARMA_L4
+	bool "Support for Karma Virtual Machine Environment"
+	select MIPS_L4
+	help
+	  Say yes if you intend to run the kernel in a virtual machine
+	  on top of a L4 microkernel
+
+if KARMA_L4
+
+config MIPS_L4
+	bool "MIPS support for Karma Virtual Machine Environment"
+	default n
+	depends on !MODULES
+	select MACH_VIRT
+	select PAGE_SIZE_16KB
+	select SERIAL_L4
+
+config KARMA_L4_FB
+	bool "Support for L4 Framebuffer"
+	default n
+	select FB
+	select VT
+	select FRAMEBUFFER_CONSOLE
+	select FB_CFB_FILLRECT
+	select FB_CFB_COPYAREA
+	select FB_CFB_IMAGEBLIT
+	help
+	  Say yes if you want framebuffer support using l4con.
+
+config KARMA_L4_PCI
+	bool "Support for PCI access using L4 io vbus"
+	default n
+	select HW_HAS_PCI
+
+config KARMA_L4_NET
+	bool "Support for Ankh-based network access (broken)"
+	default n
+	help
+	  Say yes if you want to use networking in your VM.
+
+config KARMA_L4_BLKDEV
+	bool "Support for paravirtualized block devices"
+	default n
+	depends on BLK_DEV
+	help
+	  Say yes if you want to access paravirtualized block devices.
+
+config KARMA_L4_DMA
+	bool "Support for paravirtualized guest DMA access"
+	default n
+	help
+	  Say yes if you want to use networking with DMA in your VM.
+
+endif # KARMA_L4
+
+config KARMA_PKG_PATH
+	string "Absolute path to karma source directory."
+	help
+	  This option must be set when building linux for the karma vmm.
+
 config MIPS
 	bool
 	default y
@@ -835,6 +895,21 @@ config NLM_XLP_BOARD
 	  This board is based on Netlogic XLP Processor.
 	  Say Y here if you have a XLP based board.
 
+config MACH_VIRT
+	bool "Virtual Platform"
+	select CEVT_R4K
+	select CSRC_R4K
+	select DMA_NONCOHERENT
+	select GENERIC_ISA_DMA if KARMA_L4_DMA
+	select IRQ_CPU
+	select USE_OF
+	select SYS_HAS_CPU_MIPS32_R1
+	select SYS_HAS_CPU_MIPS32_R2
+	select SYS_SUPPORTS_32BIT_KERNEL
+	select SYS_SUPPORTS_LITTLE_ENDIAN
+	select MIPS_MT_DISABLED
+	select SYS_HAS_EARLY_PRINTK
+
 endchoice
 
 source "arch/mips/alchemy/Kconfig"
@@ -856,6 +931,7 @@ source "arch/mips/cavium-octeon/Kconfig"
 source "arch/mips/loongson/Kconfig"
 source "arch/mips/loongson1/Kconfig"
 source "arch/mips/netlogic/Kconfig"
+source "arch/mips/mach-virt/Kconfig"
 
 endmenu
 

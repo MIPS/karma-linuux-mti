@@ -1,0 +1,7 @@
+#
+# MIPS Virtual Platform
+#
+
+platform-$(CONFIG_MACH_VIRT)	+= mach-virt/
+cflags-$(CONFIG_MACH_VIRT)	+= -I$(srctree)/arch/mips/include/asm/mach-virt
+load-$(CONFIG_MACH_VIRT)	+= 0xffffffff80100000

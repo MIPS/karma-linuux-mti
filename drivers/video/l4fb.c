@@ -48,8 +48,8 @@ enum {
 static unsigned int xres = SCR_DFL_WIDTH, yres = SCR_DFL_HEIGHT;
 static unsigned int depth;
 
-static int disable, touchscreen, abs2rel=1;
-static int singledev;
+static bool disable, touchscreen, abs2rel=1;
+static bool singledev;
 static const unsigned int unmaps_per_refresh = 1;
 
 static int redraw_pending;

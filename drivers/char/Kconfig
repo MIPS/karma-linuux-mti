@@ -28,6 +28,13 @@ config DEVKMEM
 	  kind of kernel debugging operations.
 	  When in doubt, say "N".
 
+config DEVELLIPTICINTERVM
+       tristate "Elliptic intervm char driver"
+       default y
+       help
+          Elliptic characture device driver for inter-virtual machine
+          communication.
+
 config STALDRV
 	bool "Stallion multiport serial support"
 	depends on SERIAL_NONSTANDARD

@@ -25,7 +25,7 @@
 
 #define PANIC_TIMER_STEP 100
 #define PANIC_BLINK_SPD 18
-#ifdef CONFIG_X86_L4
+#ifdef CONFIG_KARMA_L4
 #include <asm/l4.h>
 #endif
 
@@ -81,7 +81,7 @@ void panic(const char *fmt, ...)
 	va_list args;
 	long i, i_next = 0;
 	int state = 0;
-#ifdef CONFIG_X86_L4
+#ifdef CONFIG_KARMA_L4
 	volatile unsigned long __temp_arg;
 #endif
 
@@ -111,7 +111,7 @@ void panic(const char *fmt, ...)
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
-#ifdef CONFIG_X86_L4
+#ifdef CONFIG_KARMA_L4
 	__temp_arg = (unsigned long) virt_to_phys(buf);
 	karma_hypercall1(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(karma),
 				karma_df_panic), &__temp_arg);
@@ -367,7 +367,7 @@ int oops_may_print(void)
  */
 void oops_enter(void)
 {
-#ifdef CONFIG_X86_L4
+#ifdef CONFIG_KARMA_L4
 	karma_hypercall0(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(karma),
 				karma_df_oops));
 #endif

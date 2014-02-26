@@ -1181,7 +1181,7 @@ static int ahci_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	struct ata_host *host;
 	int n_ports, n_msis, i, rc;
 	int ahci_pci_bar = AHCI_PCI_BAR_STANDARD;
-#ifdef CONFIG_X86_L4
+#ifdef CONFIG_KARMA_L4
 	unsigned long __temp_arg;
 #endif
 

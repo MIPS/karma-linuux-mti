@@ -1,18 +1,23 @@
 # x86 configuration
 #mainmenu "Linux Kernel Configuration for x86"
 
-config X86_L4
+config KARMA_L4
+	select X86_L4
 	bool "Support for Karma Virtual Machine Environment"
 	help
 	  Say yes if you intend to run the kernel in a virtual machine
 	  on top of a L4 microkernel
-
 
 config KARMA_PKG_PATH
 	string "Absolute path to karma source directory."
 	help
 	  This option must be set when building linux for the karma vmm.
 
+
+config X86_L4
+	bool "x86 support for Karma Virtual Machine Environment"
+	default n
+	depends on KARMA_L4
 
 config X86_L4_FB
 	select FB

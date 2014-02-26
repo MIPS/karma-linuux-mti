@@ -4,6 +4,8 @@
 
 obj-y				+= pci.o
 
+obj-$(CONFIG_KARMA_L4_PCI)	+= ops-l4vpci.o pci-machvirt.o fixup-machvirt.o
+
 #
 # PCI bus host bridge specific code
 #

@@ -1,0 +1,34 @@
+/dts-v1/;
+
+// cmdline and memsize are read from boot prom
+
+/ {
+	model = "mach-virt";
+	#address-cells = <1>;
+	#size-cells = <1>;
+	compatible = "mti,virt";
+
+	cpus {
+		cpu@0 {
+			compatible = "mti,mips24KEc", "mti,mips24Kc";
+		};
+	};
+
+	cpuintc: cpuintc@0 {
+		#address-cells = <0>;
+		#interrupt-cells = <1>;
+		interrupt-controller;
+		compatible = "mti,cpu-interrupt-controller";
+	};
+
+	intc: intc@0 {
+		compatible = "karma,karma-gic-intc";
+
+		interrupt-controller;
+		#interrupt-cells = <1>;
+
+		// cascade karma gic device @ irq2 of cpuintc:
+		interrupt-parent = <&cpuintc>;
+		interrupts = <2>;
+	};
+};
