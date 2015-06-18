@@ -22,6 +22,9 @@
 
 #include <asm/asmmacro.h>
 
+/* preprocessor replaces the fp in ".set fp=64" with $30 otherwise */
+#undef fp
+
 /*
  * Offset to the current process status flags, the first 32 bytes of the
  * stack are not used.
@@ -182,6 +185,11 @@ LEAF(_restore_fp)
  * We initialize fcr31 to rounding to nearest, no exceptions.
  */
 
+#define FPU_DEFAULT  0x00000000
+
+	.set push
+	SET_HARDFLOAT
+
 LEAF(_init_fpu)
 #ifdef CONFIG_MIPS_MT_SMTC
 	/* Rather than manipulate per-VPE Status, set per-TC bit in TCStatus */
@@ -296,7 +304,11 @@ LEAF(_init_fpu)
 
 	move    t1, t3                          # move SNaN, DP high word
 	.set    push
-	.set    mips64r2
+	.set    mips32r2
+	.set	fp=64
+	sll     t0, t0, 5			# is Status.FR set?
+	bgez    t0, 1f				# no: skip setting upper 32b
+
 	mthc1   t1, $f0
 	mthc1   t1, $f1
 	mthc1   t1, $f2
@@ -353,3 +365,5 @@ LEAF(_init_fpu)
 #endif /* CONFIG_CPU_MIPS32 */
 	jr	ra
 	END(_init_fpu)
+
+	.set pop	/* SET_HARDFLOAT */
