@@ -7,7 +7,11 @@
  */
 
 #include <linux/kernel.h>
+#ifdef CONFIG_KARMA_L4
+#include <asm/l4.h>
+#else
 #include <linux/kvm_para.h>
+#endif
 
 #include <asm/reboot.h>
 #include <asm/bootinfo.h>
@@ -21,16 +25,42 @@ const char *get_system_type(void)
 	return "MIPS Para-Virtualized Guest";
 }
 
+static inline u32 get_counter_resolution(void)
+{
+        u32 res;
+
+        __asm__ __volatile__(
+                ".set   push\n"
+                ".set   mips32r2\n"
+                "rdhwr  %0, $3\n"
+                ".set pop\n"
+                : "=&r" (res)
+                : /* no input */
+                : "memory");
+
+        return res;
+}
+
 void __init plat_time_init(void)
 {
+#ifdef CONFIG_KARMA_L4
+	unsigned long temp_arg = 0;
+	karma_hypercall1(KARMA_MAKE_COMMAND(KARMA_DEVICE_ID(karma), karma_df_get_khz_cpu), &temp_arg);
+	mips_hpt_frequency = temp_arg * 1000 / get_counter_resolution();
+#else
 	mips_hpt_frequency = kvm_hypercall0(KVM_HC_MIPS_GET_CLOCK_FREQ);
+#endif
 
 	preset_lpj = mips_hpt_frequency / (2 * HZ);
 }
 
 static void pv_machine_halt(void)
 {
+#ifdef CONFIG_KARMA_L4
+	karma_hypercall_exit_op();
+#else
 	kvm_hypercall0(KVM_HC_MIPS_EXIT_VM);
+#endif
 }
 
 /*

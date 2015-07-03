@@ -33,4 +33,13 @@
 #define cpu_has_4k_cache	1
 #endif
 
+#ifdef CONFIG_CPU_MIPS32_R2
+#define cpu_has_mips32r2	1
+#endif
+#ifdef CONFIG_CPU_MIPS64_R2
+#define cpu_has_mips64r2	1
+#endif
+
+#define cpu_has_maar		0
+
 #endif /* __ASM_MACH_PARAVIRT_CPU_FEATURE_OVERRIDES_H */

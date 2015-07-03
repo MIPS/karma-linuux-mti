@@ -86,7 +86,11 @@ static inline cycles_t get_cycles(void)
  */
 static inline unsigned long random_get_entropy(void)
 {
+#ifdef CONFIG_KARMA_L4
+	unsigned int prid = boot_cpu_data.processor_id;
+#else
 	unsigned int prid = read_c0_prid();
+#endif
 	unsigned int imp = prid & PRID_IMP_MASK;
 
 	if (can_use_mips_counter(prid))

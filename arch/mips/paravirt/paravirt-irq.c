@@ -13,6 +13,10 @@
 
 #include <asm/io.h>
 
+#ifdef CONFIG_KARMA_L4_SERIAL
+#include <asm/l4.h>
+#endif
+
 #define MBOX_BITS_PER_CPU 2
 
 static int cpunum_for_cpu(int cpu)
@@ -318,6 +322,9 @@ static void __init irq_pci_init(void)
 	for (i = 0; i < 2; i++)
 		irq_set_chip_and_handler(i + MIPS_IRQ_MBOX0, &irq_chip_mbox, handle_percpu_irq);
 
+#ifdef CONFIG_KARMA_L4_SERIAL
+	irq_set_chip_and_handler(karma_irq_ser + MIPS_IRQ_PCID + 1, &irq_chip_pci, handle_level_irq);
+#endif
 
 	set_c0_status(STATUSF_IP2);
 }

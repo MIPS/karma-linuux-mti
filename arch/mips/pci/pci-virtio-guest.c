@@ -30,6 +30,7 @@ union pci_config_address {
 	u32 w;
 };
 
+#if !defined(CONFIG_KARMA_L4_PCI)
 int pcibios_plat_dev_init(struct pci_dev *dev)
 {
 	return 0;
@@ -39,6 +40,7 @@ int pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
 	return ((pin + slot) % 4)+ MIPS_IRQ_PCIA;
 }
+#endif
 
 static void pci_virtio_guest_write_config_addr(struct pci_bus *bus,
 					unsigned int devfn, int reg)

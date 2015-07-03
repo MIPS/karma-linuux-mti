@@ -81,6 +81,7 @@ obj-$(CONFIG_PROC_FS)		+= proc.o
 obj-$(CONFIG_64BIT)		+= cpu-bugs64.o
 
 obj-$(CONFIG_I8253)		+= i8253.o
+obj-$(CONFIG_KARMA_L4_MIPS)	+= hypercall.o
 
 obj-$(CONFIG_GPIO_TXX9)		+= gpio_txx9.o
 

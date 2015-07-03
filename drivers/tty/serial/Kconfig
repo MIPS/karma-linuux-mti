@@ -7,6 +7,11 @@ if TTY
 menu "Serial drivers"
 	depends on HAS_IOMEM
 
+config KARMA_L4_SERIAL
+	bool "Support for paravirtualized L4 serial console access"
+	select SERIAL_CORE
+	select SERIAL_CORE_CONSOLE
+
 config SERIAL_EARLYCON
 	bool
 	help

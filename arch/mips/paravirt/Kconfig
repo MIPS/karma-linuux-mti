@@ -2,5 +2,6 @@ if MIPS_PARAVIRT
 
 config MIPS_PCI_VIRTIO
 	def_bool y
+	depends on VIRTIO_PCI
 
 endif #  MIPS_PARAVIRT
