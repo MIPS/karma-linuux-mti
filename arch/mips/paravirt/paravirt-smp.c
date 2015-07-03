@@ -30,7 +30,7 @@ static int __init set_numcpus(char *str)
 	int newval;
 
 	if (get_option(&str, &newval)) {
-		if (newval < 1 || newval >= NR_CPUS)
+		if (newval < 1 || newval > NR_CPUS)
 			goto bad;
 		numcpus = newval;
 		return 0;
